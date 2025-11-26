@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useEffect, useMemo } from 'react';
 import MenuBar from './components/MenuBar';
 import Dock from './components/Dock';
@@ -57,6 +54,32 @@ const App: React.FC = () => {
     return activeWindows.reduce((a, b) => a.zIndex > b.zIndex ? a : b).id;
   }, [windows]);
 
+  // --- Window Management Logic ---
+
+  const constrainWindowPosition = (config: WindowConfig): { x: number, y: number } => {
+    const MENUBAR_HEIGHT = 28;
+    const DOCK_AREA_HEIGHT = 64; // 56px dock + 8px bottom padding for main container
+    const HEADER_HEIGHT = 36; // From Window.tsx h-9
+    const VISIBLE_EDGE_THRESHOLD = 80; // Min pixels of the window to keep visible on horizontal edges
+
+    const availableWidth = window.innerWidth;
+    // This is the height of the <main> element where windows are rendered
+    const availableHeight = window.innerHeight - MENUBAR_HEIGHT - DOCK_AREA_HEIGHT;
+
+    let newX = config.x;
+    let newY = config.y;
+
+    // Constrain Y (vertical): Keep header visible within the main area
+    newY = Math.max(0, newY); // Don't go above the main area
+    newY = Math.min(availableHeight - HEADER_HEIGHT, newY); // Don't let header go under the dock
+    
+    // Constrain X (horizontal): Keep a portion of the window visible
+    newX = Math.max(-config.width + VISIBLE_EDGE_THRESHOLD, newX); // Don't go too far left
+    newX = Math.min(availableWidth - VISIBLE_EDGE_THRESHOLD, newX); // Don't go too far right
+
+    return { x: newX, y: newY };
+  };
+
   // --- Window Management Handlers ---
   const openWindow = (appId: AppModule) => {
     const existingWindow = windows.find(w => w.id === appId);
@@ -69,7 +92,7 @@ const App: React.FC = () => {
       return;
     }
     
-    const newWindow: WindowConfig = {
+    const baseConfig: WindowConfig = {
       id: appId,
       x: Math.random() * 200 + 50,
       y: Math.random() * 100 + 50,
@@ -79,6 +102,9 @@ const App: React.FC = () => {
       isMinimized: false,
       isMaximized: false,
     };
+    const constrainedPos = constrainWindowPosition(baseConfig);
+    const newWindow: WindowConfig = { ...baseConfig, ...constrainedPos };
+
     setWindows([...windows, newWindow]);
     setNextZIndex(nextZIndex + 1);
   };
@@ -97,12 +123,15 @@ const App: React.FC = () => {
       if (w.id === appId) {
         if (w.isMaximized) {
           // Restore
-          return {
+          const restoredState = {
             ...w,
             isMaximized: false,
-            ...(w.preMaximizeState || {}), // apply stored dimensions
+            ...w.preMaximizeState, // apply stored dimensions
             preMaximizeState: undefined,
-          };
+          } as WindowConfig;
+          const constrainedPos = constrainWindowPosition(restoredState);
+          return { ...restoredState, ...constrainedPos };
+
         } else {
           // Maximize
           return {
@@ -111,7 +140,7 @@ const App: React.FC = () => {
             preMaximizeState: { x: w.x, y: w.y, width: w.width, height: w.height },
             x: 0,
             y: 0,
-            width: window.innerWidth, // Adjust if main area is not full screen
+            width: window.innerWidth,
             height: window.innerHeight - 28 - 64, // menubar and dock allowance
           };
         }
@@ -127,8 +156,16 @@ const App: React.FC = () => {
         setNextZIndex(nextZIndex + 1);
     }
   };
+
   const updateWindow = (appId: AppModule, updates: Partial<WindowConfig>) => {
-    setWindows(windows.map(w => w.id === appId ? { ...w, ...updates } : w));
+    setWindows(windows.map(w => {
+      if (w.id === appId) {
+        const potentialUpdate = { ...w, ...updates } as WindowConfig;
+        const constrainedPos = constrainWindowPosition(potentialUpdate);
+        return { ...potentialUpdate, ...constrainedPos };
+      }
+      return w;
+    }));
   };
 
   const closeActiveWindow = () => activeWindowId && closeWindow(activeWindowId);
