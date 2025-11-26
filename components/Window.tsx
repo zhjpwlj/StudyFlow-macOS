@@ -29,100 +29,147 @@ type ResizeDirection = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw';
 const Window: React.FC<WindowProps> = ({ children, config, onClose, onMinimize, onToggleMaximize, onFocus, onUpdate }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState<ResizeDirection | null>(null);
-
+  const [isMounted, setIsMounted] = useState(false);
+  
+  const windowRef = useRef<HTMLDivElement>(null);
   const dragStartPos = useRef({ x: 0, y: 0 });
   const windowStartRect = useRef({ x: 0, y: 0, width: 0, height: 0 });
-  
-  const handleDragStart = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.button !== 0 || config.isMaximized) return;
-    onFocus();
-    setIsDragging(true);
-    dragStartPos.current = { x: e.clientX, y: e.clientY };
-    windowStartRect.current = { x: config.x, y: config.y, width: config.width, height: config.height };
+
+  useEffect(() => {
+    // Trigger the mount animation
+    const timeout = setTimeout(() => setIsMounted(true), 10);
+    return () => clearTimeout(timeout);
+  }, []);
+
+  const getEventCoords = (e: MouseEvent | TouchEvent) => {
+    return 'touches' in e ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : { x: e.clientX, y: e.clientY };
   };
 
-  const handleResizeStart = (direction: ResizeDirection) => (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleStart = useCallback((
+    e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>,
+    action: 'drag' | { type: 'resize', direction: ResizeDirection }
+  ) => {
+    if ('button' in e && e.button !== 0) return;
+    if (config.isMaximized) return;
+
     e.stopPropagation();
-    if (e.button !== 0 || config.isMaximized) return;
     onFocus();
-    setIsResizing(direction);
-    dragStartPos.current = { x: e.clientX, y: e.clientY };
+    
+    const { x, y } = getEventCoords(e.nativeEvent);
+    dragStartPos.current = { x, y };
     windowStartRect.current = { x: config.x, y: config.y, width: config.width, height: config.height };
-  };
 
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (isDragging) {
-      const dx = e.clientX - dragStartPos.current.x;
-      const dy = e.clientY - dragStartPos.current.y;
-      onUpdate({ x: windowStartRect.current.x + dx, y: windowStartRect.current.y + dy });
+    if (action === 'drag') {
+      setIsDragging(true);
+    } else if (action.type === 'resize') {
+      setIsResizing(action.direction);
     }
+  }, [config.isMaximized, config.x, config.y, config.width, config.height, onFocus]);
+  
+  const handleMove = useCallback((e: MouseEvent | TouchEvent) => {
+    if (e.cancelable) e.preventDefault();
+    
+    const { x: clientX, y: clientY } = getEventCoords(e);
+    const dx = clientX - dragStartPos.current.x;
+    const dy = clientY - dragStartPos.current.y;
+    
+    if (!windowRef.current) return;
+
+    if (isDragging) {
+      const newX = windowStartRect.current.x + dx;
+      const newY = windowStartRect.current.y + dy;
+      onUpdate({ x: newX, y: newY });
+    }
+    
     if (isResizing) {
         let { x, y, width, height } = windowStartRect.current;
-        const dx = e.clientX - dragStartPos.current.x;
-        const dy = e.clientY - dragStartPos.current.y;
         
         if (isResizing.includes('e')) width += dx;
         if (isResizing.includes('s')) height += dy;
         if (isResizing.includes('w')) { width -= dx; x += dx; }
         if (isResizing.includes('n')) { height -= dy; y += dy; }
         
-        onUpdate({ x, y, width: Math.max(300, width), height: Math.max(200, height) });
+        onUpdate({ 
+            x, 
+            y, 
+            width: Math.max(300, width), 
+            height: Math.max(200, height) 
+        });
     }
   }, [isDragging, isResizing, onUpdate]);
 
-  const handleMouseUp = useCallback(() => {
+  const handleEnd = useCallback(() => {
     setIsDragging(false);
     setIsResizing(null);
   }, []);
 
   useEffect(() => {
     if (isDragging || isResizing) {
-        document.addEventListener('mousemove', handleMouseMove);
-        document.addEventListener('mouseup', handleMouseUp, { once: true });
+        document.addEventListener('mousemove', handleMove);
+        document.addEventListener('mouseup', handleEnd, { once: true });
+        document.addEventListener('touchmove', handleMove, { passive: false });
+        document.addEventListener('touchend', handleEnd, { once: true });
     }
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mousemove', handleMove);
+      document.removeEventListener('mouseup', handleEnd);
+      document.removeEventListener('touchmove', handleMove);
+      document.removeEventListener('touchend', handleEnd);
     };
-  }, [isDragging, isResizing, handleMouseMove, handleMouseUp]);
-  
-  const maximizedStyles = config.isMaximized ? {
-    top: 0, left: 0, width: '100%', height: '100%', borderRadius: 0,
-  } : {
-    top: config.y, left: config.x, width: config.width, height: config.height,
-  };
+  }, [isDragging, isResizing, handleMove, handleEnd]);
 
   const windowClasses = `
     absolute bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl border border-white/20 dark:border-black/20 
-    rounded-[var(--window-border-radius)] shadow-window flex flex-col overflow-hidden
-    ${config.isMinimized ? 'opacity-0 scale-90 -translate-y-4' : 'opacity-100 scale-100'}
-    ${config.isMaximized ? 'transition-none' : 'transition-all duration-200'}
+    rounded-[var(--window-border-radius)] shadow-window flex flex-col overflow-hidden transition-all duration-300 ease-out
+    ${(isMounted && !config.isClosing && !config.isMinimized) ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}
+    ${config.isMinimized ? 'translate-y-16' : ''}
   `;
+
+  const dynamicStyles: React.CSSProperties = {
+    top: config.y,
+    left: config.x,
+    width: config.width,
+    height: config.height,
+    zIndex: config.zIndex,
+    pointerEvents: config.isMinimized ? 'none' : 'auto',
+    transitionProperty: isDragging || isResizing ? 'none' : 'transform, opacity, top, left, width, height',
+  };
+  
+  if (config.isMaximized) {
+    dynamicStyles.top = 0;
+    dynamicStyles.left = 0;
+    dynamicStyles.width = '100%';
+    dynamicStyles.height = '100%';
+    dynamicStyles.borderRadius = 0;
+  }
 
   return (
     <div
+      ref={windowRef}
       className={windowClasses}
-      style={{ ...maximizedStyles, zIndex: config.zIndex, pointerEvents: config.isMinimized ? 'none' : 'auto' }}
+      style={dynamicStyles}
       onMouseDown={onFocus}
+      onTouchStart={onFocus}
     >
       {/* Resizers */}
       {!config.isMaximized && (
         <>
-            <div onMouseDown={handleResizeStart('n')} className="absolute top-0 left-2 right-2 h-2 cursor-n-resize" />
-            <div onMouseDown={handleResizeStart('s')} className="absolute bottom-0 left-2 right-2 h-2 cursor-s-resize" />
-            <div onMouseDown={handleResizeStart('w')} className="absolute top-2 bottom-2 left-0 w-2 cursor-w-resize" />
-            <div onMouseDown={handleResizeStart('e')} className="absolute top-2 bottom-2 right-0 w-2 cursor-e-resize" />
-            <div onMouseDown={handleResizeStart('nw')} className="absolute top-0 left-0 w-3 h-3 cursor-nw-resize" />
-            <div onMouseDown={handleResizeStart('ne')} className="absolute top-0 right-0 w-3 h-3 cursor-ne-resize" />
-            <div onMouseDown={handleResizeStart('sw')} className="absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize" />
-            <div onMouseDown={handleResizeStart('se')} className="absolute bottom-0 right-0 w-3 h-3 cursor-se-resize" />
+            <div onMouseDown={(e) => handleStart(e, {type: 'resize', direction: 'n'})} onTouchStart={(e) => handleStart(e, {type: 'resize', direction: 'n'})} className="absolute top-0 left-2 right-2 h-2 cursor-n-resize" />
+            <div onMouseDown={(e) => handleStart(e, {type: 'resize', direction: 's'})} onTouchStart={(e) => handleStart(e, {type: 'resize', direction: 's'})} className="absolute bottom-0 left-2 right-2 h-2 cursor-s-resize" />
+            <div onMouseDown={(e) => handleStart(e, {type: 'resize', direction: 'w'})} onTouchStart={(e) => handleStart(e, {type: 'resize', direction: 'w'})} className="absolute top-2 bottom-2 left-0 w-2 cursor-w-resize" />
+            <div onMouseDown={(e) => handleStart(e, {type: 'resize', direction: 'e'})} onTouchStart={(e) => handleStart(e, {type: 'resize', direction: 'e'})} className="absolute top-2 bottom-2 right-0 w-2 cursor-e-resize" />
+            <div onMouseDown={(e) => handleStart(e, {type: 'resize', direction: 'nw'})} onTouchStart={(e) => handleStart(e, {type: 'resize', direction: 'nw'})} className="absolute top-0 left-0 w-3 h-3 cursor-nw-resize" />
+            <div onMouseDown={(e) => handleStart(e, {type: 'resize', direction: 'ne'})} onTouchStart={(e) => handleStart(e, {type: 'resize', direction: 'ne'})} className="absolute top-0 right-0 w-3 h-3 cursor-ne-resize" />
+            <div onMouseDown={(e) => handleStart(e, {type: 'resize', direction: 'sw'})} onTouchStart={(e) => handleStart(e, {type: 'resize', direction: 'sw'})} className="absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize" />
+            <div onMouseDown={(e) => handleStart(e, {type: 'resize', direction: 'se'})} onTouchStart={(e) => handleStart(e, {type: 'resize', direction: 'se'})} className="absolute bottom-0 right-0 w-3 h-3 cursor-se-resize" />
         </>
       )}
 
       {/* Title Bar */}
       <div
         className="h-9 flex items-center justify-between px-3 flex-shrink-0 bg-gradient-to-b from-white/50 to-transparent dark:from-white/10"
-        onMouseDown={handleDragStart}
+        onMouseDown={(e) => handleStart(e, 'drag')}
+        onTouchStart={(e) => handleStart(e, 'drag')}
         onDoubleClick={onToggleMaximize}
         style={{ cursor: isDragging ? 'grabbing' : (config.isMaximized ? 'default' : 'grab') }}
       >

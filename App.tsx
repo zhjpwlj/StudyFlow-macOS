@@ -1,5 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+
+
+import React, { useState, useEffect, useMemo } from 'react';
 import MenuBar from './components/MenuBar';
 import Dock from './components/Dock';
 import Window from './components/Window';
@@ -48,6 +50,13 @@ const App: React.FC = () => {
     }
   }, [isDarkMode]);
 
+  const activeWindowId = useMemo(() => {
+    if (windows.length === 0) return null;
+    const activeWindows = windows.filter(w => !w.isMinimized);
+    if (activeWindows.length === 0) return null;
+    return activeWindows.reduce((a, b) => a.zIndex > b.zIndex ? a : b).id;
+  }, [windows]);
+
   // --- Window Management Handlers ---
   const openWindow = (appId: AppModule) => {
     const existingWindow = windows.find(w => w.id === appId);
@@ -74,7 +83,13 @@ const App: React.FC = () => {
     setNextZIndex(nextZIndex + 1);
   };
   
-  const closeWindow = (appId: AppModule) => setWindows(windows.filter(w => w.id !== appId));
+  const closeWindow = (appId: AppModule) => {
+    setWindows(prev => prev.map(w => w.id === appId ? { ...w, isClosing: true } : w));
+    setTimeout(() => {
+      setWindows(prev => prev.filter(w => w.id !== appId));
+    }, 300); // Match animation duration
+  };
+
   const minimizeWindow = (appId: AppModule) => setWindows(windows.map(w => w.id === appId ? { ...w, isMinimized: true } : w));
   
   const toggleMaximizeWindow = (appId: AppModule) => {
@@ -116,10 +131,19 @@ const App: React.FC = () => {
     setWindows(windows.map(w => w.id === appId ? { ...w, ...updates } : w));
   };
 
+  const closeActiveWindow = () => activeWindowId && closeWindow(activeWindowId);
+  const minimizeActiveWindow = () => activeWindowId && minimizeWindow(activeWindowId);
+  const toggleMaximizeActiveWindow = () => activeWindowId && toggleMaximizeWindow(activeWindowId);
+  const closeAllWindows = () => {
+    setWindows(prev => prev.map(w => ({ ...w, isClosing: true })));
+    setTimeout(() => setWindows([]), 300);
+  };
+
   // --- Data Handlers ---
   const handleAddTask = (title: string, project: string, priority: 'low' | 'medium' | 'high' = 'medium', reminder?: string) => {
     const newTask: Task = { id: Date.now().toString(), title, completed: false, project: project || 'General', priority, reminder };
     setTasks(prev => [newTask, ...prev]);
+    openWindow(AppModule.TASKS);
   };
   const handleToggleTask = (id: string) => setTasks(prev => prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
   const handleDeleteTask = (id: string) => setTasks(prev => prev.filter(t => t.id !== id));
@@ -153,7 +177,18 @@ const App: React.FC = () => {
 
   return (
     <div className={`h-full w-full overflow-hidden font-sans ${isDarkMode ? 'dark' : ''}`}>
-      <MenuBar isDarkMode={isDarkMode} onToggleDarkMode={() => setIsDarkMode(!isDarkMode)} />
+      <MenuBar 
+        isDarkMode={isDarkMode} 
+        onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
+        onNewTask={() => openWindow(AppModule.TASKS)}
+        onCloseWindow={closeActiveWindow}
+        onMinimizeWindow={minimizeActiveWindow}
+        onToggleMaximize={toggleMaximizeActiveWindow}
+        onCloseAll={closeAllWindows}
+        windows={windows}
+        activeWindowId={activeWindowId}
+        onFocusWindow={focusWindow}
+      />
       
       <main className="absolute inset-0 top-[var(--menubar-height)] bottom-[calc(var(--dock-height)+8px)]">
         {windows.map(config => (

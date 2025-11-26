@@ -1,4 +1,5 @@
 
+
 export enum AppModule {
   DASHBOARD = 'DASHBOARD',
   TASKS = 'TASKS',
@@ -19,6 +20,7 @@ export interface WindowConfig {
   isMinimized: boolean;
   isMaximized: boolean;
   preMaximizeState?: { x: number; y: number; width: number; height: number; };
+  isClosing?: boolean;
 }
 
 export interface Task {
