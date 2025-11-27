@@ -16,11 +16,31 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks, timeEntries, onToggleTask 
   const hours = Math.floor(totalDuration / 3600);
   const minutes = Math.floor((totalDuration % 3600) / 60);
 
-  const data = [
-    { name: 'Mon', hours: 4.5 }, { name: 'Tue', hours: 6.2 }, { name: 'Wed', hours: 3.8 },
-    { name: 'Thu', hours: 7.5 }, { name: 'Fri', hours: 5.1 }, { name: 'Sat', hours: 2.0 },
-    { name: 'Sun', hours: 3.5 },
-  ];
+  const today = new Date();
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  // Initialize data for the last 7 days, ending with today
+  const weeklyData = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date();
+      date.setDate(today.getDate() - i);
+      return {
+          name: dayNames[date.getDay()],
+          date: date.setHours(0, 0, 0, 0), // Use start of day for comparison
+          hours: 0
+      };
+  }).reverse(); // Reverse to have today at the end
+
+  // Aggregate time entries by day
+  timeEntries.forEach(entry => {
+      const entryDayStart = new Date(entry.startTime).setHours(0, 0, 0, 0);
+      const dayData = weeklyData.find(d => d.date === entryDayStart);
+      if (dayData) {
+          dayData.hours += entry.duration / 3600; // seconds to hours
+      }
+  });
+
+  const data = weeklyData.map(d => ({ name: d.name, hours: parseFloat(d.hours.toFixed(1)) }));
+  const todayIndex = 6; // Today is always the last item in our reversed array
 
   const StatCard: React.FC<{ icon: React.ReactNode; title: string; value: string; detail: React.ReactNode }> = ({ icon, title, value, detail }) => (
     <div className="bg-white dark:bg-slate-800/50 p-4 rounded-lg border border-gray-200 dark:border-slate-700/50">
@@ -66,7 +86,7 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks, timeEntries, onToggleTask 
                  <YAxis axisLine={false} tickLine={false} tick={{fill: 'var(--tw-colors-slate-500)', fontSize: 12}} />
                  <Tooltip cursor={{fill: 'var(--tw-colors-gray-100)', className: 'dark:fill-slate-700/50'}} contentStyle={{ borderRadius: '8px', border: 'none', backgroundColor: 'var(--tw-colors-white)', color: 'var(--tw-colors-slate-800)' }} itemStyle={{ color: 'var(--tw-colors-slate-800)'}} labelStyle={{ fontWeight: 'bold' }} />
                  <Bar dataKey="hours" radius={[4, 4, 0, 0]}>
-                    {data.map((entry, index) => (<Cell key={`cell-${index}`} className={index === 3 ? 'fill-indigo-500' : 'fill-gray-300 dark:fill-slate-600'} />))}
+                    {data.map((entry, index) => (<Cell key={`cell-${index}`} fill={index === todayIndex ? 'var(--accent-color)' : '#cbd5e1'} className={index === todayIndex ? '' : 'dark:fill-slate-600'} />))}
                  </Bar>
                </BarChart>
              </ResponsiveContainer>
@@ -78,7 +98,7 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks, timeEntries, onToggleTask 
            <div className="space-y-2">
              {tasks.slice(0, 4).map(task => (
                <button key={task.id} onClick={() => onToggleTask(task.id)} className="w-full text-left flex items-start gap-3 p-2 bg-gray-50 dark:bg-slate-900/30 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors group">
-                  <div className={`w-4 h-4 rounded border-2 flex items-center justify-center mt-0.5 transition-colors flex-shrink-0 ${task.completed ? 'bg-indigo-600 border-indigo-600' : 'border-gray-300 dark:border-gray-500 group-hover:border-indigo-400'}`}>
+                  <div className={`w-4 h-4 rounded border-2 flex items-center justify-center mt-0.5 transition-colors flex-shrink-0 ${task.completed ? 'bg-[var(--accent-color)] border-[var(--accent-color)]' : 'border-gray-300 dark:border-gray-500 group-hover:border-[var(--accent-color)]'}`}>
                     {task.completed && <CheckCircle2 size={12} className="text-white" />}
                   </div>
                   <div className="flex-1 min-w-0">

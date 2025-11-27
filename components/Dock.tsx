@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, CheckSquare, Timer, Clock, BookOpen, Users, MessageSquare, BrainCircuit } from 'lucide-react';
+import { LayoutDashboard, CheckSquare, Timer, Clock, BookOpen, Users, Settings, BrainCircuit } from 'lucide-react';
 import { AppModule, WindowConfig } from '../types';
 
 interface DockProps {
@@ -16,6 +16,7 @@ const appIcons = {
   [AppModule.JOURNAL]: BookOpen,
   [AppModule.SOCIAL]: Users,
   [AppModule.CHAT]: BrainCircuit,
+  [AppModule.SETTINGS]: Settings,
 };
 
 const appNames = {
@@ -26,6 +27,7 @@ const appNames = {
   [AppModule.JOURNAL]: 'Journal',
   [AppModule.SOCIAL]: 'Study Room',
   [AppModule.CHAT]: 'FocusFlow AI',
+  [AppModule.SETTINGS]: 'Settings',
 }
 
 const Dock: React.FC<DockProps> = ({ openWindows, onLaunch, onFocus }) => {

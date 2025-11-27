@@ -7,7 +7,8 @@ export enum AppModule {
   POMODORO = 'POMODORO',
   JOURNAL = 'JOURNAL',
   SOCIAL = 'SOCIAL',
-  CHAT = 'CHAT'
+  CHAT = 'CHAT',
+  SETTINGS = 'SETTINGS'
 }
 
 export interface WindowConfig {

@@ -69,17 +69,17 @@ const FocusTimer: React.FC = () => {
   return (
     <div className="h-full flex flex-col items-center justify-center gap-6 p-4">
       <div className="flex gap-2 p-1 bg-gray-100 dark:bg-slate-700/50 rounded-lg">
-        <button onClick={() => changeMode('focus')} className={`px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 ${mode === 'focus' ? 'bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-300 shadow-sm' : 'text-gray-500'}`}><Brain size={16} /> Focus</button>
+        <button onClick={() => changeMode('focus')} className={`px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 ${mode === 'focus' ? 'bg-white dark:bg-slate-600 text-[var(--accent-color)] dark:text-white shadow-sm' : 'text-gray-500'}`}><Brain size={16} /> Focus</button>
         <button onClick={() => changeMode('short-break')} className={`px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 ${mode === 'short-break' ? 'bg-white dark:bg-slate-600 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-gray-500'}`}><Coffee size={16} /> Break</button>
       </div>
 
       <div className="relative">
-        <svg width="240" height="240" className="-rotate-90"><circle cx="120" cy="120" r="100" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-gray-200 dark:text-slate-700" /><circle cx="120" cy="120" r="100" stroke="currentColor" strokeWidth="12" fill="transparent" strokeDasharray={circumference} strokeDashoffset={dashoffset} strokeLinecap="round" className={`transition-all duration-1000 ease-linear ${mode === 'focus' ? 'text-indigo-500' : 'text-emerald-500'}`} /></svg>
+        <svg width="240" height="240" className="-rotate-90"><circle cx="120" cy="120" r="100" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-gray-200 dark:text-slate-700" /><circle cx="120" cy="120" r="100" stroke="currentColor" strokeWidth="12" fill="transparent" strokeDasharray={circumference} strokeDashoffset={dashoffset} strokeLinecap="round" className={`transition-all duration-1000 ease-linear ${mode === 'focus' ? 'text-[var(--accent-color)]' : 'text-emerald-500'}`} /></svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center"><div className="text-5xl font-bold text-slate-900 dark:text-white font-mono">{formatTime(timeLeft)}</div></div>
       </div>
       
       <div className="flex items-center gap-4">
-        <button onClick={toggleTimer} className={`w-16 h-16 rounded-full shadow-lg flex items-center justify-center ${isActive ? 'bg-amber-500' : 'bg-indigo-600'} text-white`}>{isActive ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-1" />}</button>
+        <button onClick={toggleTimer} className={`w-16 h-16 rounded-full shadow-lg flex items-center justify-center ${isActive ? 'bg-amber-500' : 'bg-[var(--accent-color)]'} text-white`}>{isActive ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-1" />}</button>
         <button onClick={resetTimer} className="w-12 h-12 rounded-full bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 flex items-center justify-center"><RotateCcw size={20} /></button>
       </div>
 
@@ -89,7 +89,7 @@ const FocusTimer: React.FC = () => {
       </div>
        <div className="w-full max-w-sm pt-2 grid grid-cols-4 gap-2">
            {[ { id: 'none', icon: Zap }, { id: 'rain', icon: CloudRain }, { id: 'forest', icon: Trees }, { id: 'white-noise', icon: Wind } ].map(s => (
-               <button key={s.id} onClick={() => setActiveSound(s.id as any)} className={`p-3 rounded-lg flex justify-center ${activeSound === s.id ? 'bg-indigo-500 text-white' : 'bg-gray-100 dark:bg-slate-700/50 text-gray-500'}`}><s.icon size={18} /></button>
+               <button key={s.id} onClick={() => setActiveSound(s.id as any)} className={`p-3 rounded-lg flex justify-center ${activeSound === s.id ? 'bg-[var(--accent-color)] text-white' : 'bg-gray-100 dark:bg-slate-700/50 text-gray-500'}`}><s.icon size={18} /></button>
            ))}
        </div>
     </div>

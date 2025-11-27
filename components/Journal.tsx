@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { JournalEntry } from '../types';
-import { Smile, Meh, Frown, Zap, Plus, Calendar } from 'lucide-react';
+import { Smile, Meh, Frown, Zap, Plus, Calendar, BookOpen } from 'lucide-react';
 
 interface JournalProps {
   entries: JournalEntry[];
@@ -33,7 +33,7 @@ const Journal: React.FC<JournalProps> = ({ entries, onAddEntry }) => {
     <div className="h-full flex flex-col p-4">
       <div className="flex justify-between items-center mb-4 flex-shrink-0">
         <h2 className="text-xl font-bold text-slate-900 dark:text-white">My Journal</h2>
-        <button onClick={() => setIsWriting(!isWriting)} className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm">
+        <button onClick={() => setIsWriting(!isWriting)} className="bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)] text-white px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm">
           {isWriting ? 'Cancel' : <><Plus size={16} /> New Entry</>}
         </button>
       </div>
@@ -52,23 +52,33 @@ const Journal: React.FC<JournalProps> = ({ entries, onAddEntry }) => {
               </div>
               <textarea value={newContent} onChange={(e) => setNewContent(e.target.value)} placeholder="Write your thoughts..." className="w-full h-32 bg-gray-50 dark:bg-slate-900/50 rounded-lg border-0 focus:ring-2 p-2" />
               <div className="flex justify-end">
-                <button type="submit" disabled={!newTitle.trim() || !newContent.trim()} className="bg-indigo-600 text-white px-4 py-1.5 rounded-lg font-medium text-sm disabled:opacity-50">Save</button>
+                <button type="submit" disabled={!newTitle.trim() || !newContent.trim()} className="bg-[var(--accent-color)] text-white px-4 py-1.5 rounded-lg font-medium text-sm disabled:opacity-50">Save</button>
               </div>
             </form>
           </div>
         )}
-        {entries.map(entry => (
-          <div key={entry.id} className="bg-white dark:bg-slate-800/50 rounded-lg border border-gray-200 dark:border-slate-700/50 p-4">
-            <div className="flex items-start gap-3 mb-2">
-              <div className="p-2 bg-gray-100 dark:bg-slate-700 rounded-full">{getMoodIcon(entry.mood)}</div>
-              <div>
-                <h3 className="font-bold text-slate-900 dark:text-white">{entry.title}</h3>
-                <span className="text-xs text-gray-500">{new Date(entry.date).toLocaleString()}</span>
+        {entries.length > 0 ? (
+          entries.map(entry => (
+            <div key={entry.id} className="bg-white dark:bg-slate-800/50 rounded-lg border border-gray-200 dark:border-slate-700/50 p-4">
+              <div className="flex items-start gap-3 mb-2">
+                <div className="p-2 bg-gray-100 dark:bg-slate-700 rounded-full">{getMoodIcon(entry.mood)}</div>
+                <div>
+                  <h3 className="font-bold text-slate-900 dark:text-white">{entry.title}</h3>
+                  <span className="text-xs text-gray-500">{new Date(entry.date).toLocaleString()}</span>
+                </div>
               </div>
+              <p className="text-slate-600 dark:text-slate-300 text-sm whitespace-pre-wrap">{entry.content}</p>
             </div>
-            <p className="text-slate-600 dark:text-slate-300 text-sm whitespace-pre-wrap">{entry.content}</p>
-          </div>
-        ))}
+          ))
+        ) : (
+          !isWriting && (
+            <div className="h-full flex flex-col items-center justify-center text-center text-gray-400 dark:text-gray-500 pt-8">
+              <BookOpen size={48} className="mb-4 opacity-20" />
+              <p className="font-medium">Your journal is empty.</p>
+              <p className="text-sm">Click "New Entry" to write down your thoughts.</p>
+            </div>
+          )
+        )}
       </div>
     </div>
   );

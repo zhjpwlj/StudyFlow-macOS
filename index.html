@@ -10,6 +10,10 @@
         darkMode: 'class',
         theme: {
           extend: {
+            colors: {
+              accent: 'var(--accent-color)',
+              'accent-hover': 'var(--accent-color-hover)',
+            },
             fontFamily: {
               sans: ['"SF Pro Text"', 'Inter', 'sans-serif'],
             },
@@ -38,16 +42,16 @@
         --window-border-radius: 12px;
         --dock-height: 56px;
         --menubar-height: 28px;
+        --accent-color: #4f46e5; /* Default accent color (indigo-600) */
+        --accent-color-hover: #4338ca; /* Default accent color hover (indigo-700) */
       }
       body {
         font-family: 'SF Pro Text', 'Inter', sans-serif;
-        background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop');
         background-size: cover;
         background-position: center;
+        background-attachment: fixed;
         overflow: hidden; /* Prevent scrolling of the desktop */
-      }
-      .dark body {
-        background-image: url('https://images.unsplash.com/photo-1533119428468-b06a551bb2a8?q=80&w=2592&auto=format&fit=crop');
+        transition: background-image 0.5s ease-in-out;
       }
        /* Custom scrollbar for webkit */
       ::-webkit-scrollbar {

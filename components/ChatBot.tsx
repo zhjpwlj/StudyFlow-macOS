@@ -67,10 +67,10 @@ const ChatBot: React.FC<ChatBotProps> = ({ isWindowed = false }) => {
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] rounded-2xl p-3 shadow-sm text-sm leading-relaxed ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-br-none' : 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-bl-none border border-gray-100 dark:border-slate-600'}`}>
+            <div className={`max-w-[85%] rounded-2xl p-3 shadow-sm text-sm leading-relaxed ${msg.role === 'user' ? 'bg-[var(--accent-color)] text-white rounded-br-none' : 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-bl-none border border-gray-100 dark:border-slate-600'}`}>
               {msg.isThinking && !msg.text ? (
                 <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
-                  <BrainCircuit size={16} className="animate-pulse text-indigo-500" />
+                  <BrainCircuit size={16} className="animate-pulse text-[var(--accent-color)]" />
                   <span className="text-xs font-medium italic">Thinking...</span>
                 </div>
               ) : (
@@ -93,13 +93,13 @@ const ChatBot: React.FC<ChatBotProps> = ({ isWindowed = false }) => {
               if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
             }}
             placeholder="Ask anything..."
-            className="w-full pl-4 pr-12 py-3 bg-white/50 dark:bg-slate-700/50 border-0 rounded-xl focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-white resize-none text-sm"
+            className="w-full pl-4 pr-12 py-3 bg-white/50 dark:bg-slate-700/50 border-0 rounded-xl focus:ring-2 focus:ring-[var(--accent-color)] text-slate-900 dark:text-white resize-none text-sm"
             disabled={isLoading}
           />
           <button
             onClick={handleSend}
             disabled={isLoading || !input.trim()}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg transition-colors"
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)] disabled:opacity-50 text-white rounded-lg transition-colors"
           >
             {isLoading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
           </button>

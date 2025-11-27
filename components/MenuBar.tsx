@@ -6,6 +6,7 @@ interface MenuBarProps {
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
   onNewTask: () => void;
+  onOpenPreferences: () => void;
   onCloseWindow: () => void;
   onMinimizeWindow: () => void;
   onToggleMaximize: () => void;
@@ -24,6 +25,7 @@ const getTitle = (id: AppModule) => {
     [AppModule.JOURNAL]: 'Journal',
     [AppModule.SOCIAL]: 'Study Room',
     [AppModule.CHAT]: 'FocusFlow AI',
+    [AppModule.SETTINGS]: 'Settings',
   };
   return titles[id] || 'Application';
 };
@@ -32,7 +34,7 @@ const MenuItem: React.FC<{ onClick?: () => void, disabled?: boolean, children: R
     <button
         onClick={onClick}
         disabled={disabled}
-        className="w-full text-left px-3 py-1.5 flex justify-between items-center text-sm hover:bg-indigo-600 hover:text-white rounded disabled:opacity-50 disabled:bg-transparent disabled:text-inherit"
+        className="w-full text-left px-3 py-1.5 flex justify-between items-center text-sm hover:bg-[var(--accent-color)] hover:text-white rounded disabled:opacity-50 disabled:bg-transparent disabled:text-inherit"
     >
         <span>{children}</span>
         {shortcut && <span className="text-xs opacity-60">{shortcut}</span>}
@@ -70,11 +72,15 @@ const MenuBar: React.FC<MenuBarProps> = (props) => {
   const formatTime = (date: Date) => date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
   const formatDate = (date: Date) => date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
 
-  const { isDarkMode, onToggleDarkMode, onNewTask, onCloseWindow, onMinimizeWindow, onToggleMaximize, onCloseAll, windows, activeWindowId, onFocusWindow } = props;
+  const { isDarkMode, onToggleDarkMode, onNewTask, onOpenPreferences, onCloseWindow, onMinimizeWindow, onToggleMaximize, onCloseAll, windows, activeWindowId, onFocusWindow } = props;
   const hasActiveWindow = !!activeWindowId;
 
   const menus = {
-      'FocusFlow': [],
+      'FocusFlow': [
+          { label: 'About FocusFlow', disabled: true },
+          'divider',
+          { label: 'Preferences...', action: onOpenPreferences, shortcut: '⌘,' },
+      ],
       'File': [
           { label: 'New Task...', action: onNewTask, shortcut: '⌘N' },
           { label: 'Close All Windows', action: onCloseAll, disabled: windows.length === 0, shortcut: '⌥⌘W' },
@@ -90,13 +96,12 @@ const MenuBar: React.FC<MenuBarProps> = (props) => {
           'divider',
           ...windows.map(w => ({ label: getTitle(w.id), action: () => onFocusWindow(w.id), checked: w.id === activeWindowId })),
       ],
-      'Help': [{ label: 'About FocusFlow', disabled: true }],
   };
 
   return (
     <header ref={menuRef} className="fixed top-0 left-0 right-0 h-[var(--menubar-height)] bg-white/30 dark:bg-black/30 backdrop-blur-lg shadow-sm z-50 flex items-center justify-between px-4 text-sm text-slate-900 dark:text-slate-100 select-none">
       <div className="flex items-center gap-2">
-        <div className="w-5 h-5 bg-indigo-600 rounded-md flex items-center justify-center text-white text-xs font-bold">F</div>
+        <div className="w-5 h-5 bg-[var(--accent-color)] rounded-md flex items-center justify-center text-white text-xs font-bold">F</div>
         {Object.entries(menus).map(([menuName, items]) => (
             <div key={menuName} className="relative">
                 <button

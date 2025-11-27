@@ -9,43 +9,53 @@ import TimeTracker from './components/TimeTracker';
 import Journal from './components/Journal';
 import StudyRoom from './components/StudyRoom';
 import ChatBot from './components/ChatBot';
+import Settings from './components/Settings';
+import ConfirmationModal from './components/ConfirmationModal';
 import { AppModule, Task, TimeEntry, JournalEntry, ActiveTimer, WindowConfig } from './types';
+import { usePersistentState } from './hooks/usePersistentState';
+import { wallpapers, accentColors } from './config/theme';
 
 const App: React.FC = () => {
-  const [isDarkMode, setIsDarkMode] = useState(() => {
+  // --- UI State ---
+  const [isDarkMode, setIsDarkMode] = usePersistentState<boolean>('focusflow-theme-dark', () => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('theme');
-      if (saved) return saved === 'dark';
       return window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
     return false;
   });
+  const [accentColor, setAccentColor] = usePersistentState<string>('focusflow-theme-accent', accentColors[0].hex);
+  const [wallpaper, setWallpaper] = usePersistentState<string>('focusflow-theme-wallpaper', wallpapers[0].id);
+  const [windows, setWindows] = usePersistentState<WindowConfig[]>('focusflow-windows', []);
+  const [nextZIndex, setNextZIndex] = usePersistentState<number>('focusflow-zIndex', 10);
+  const [isWipeModalOpen, setIsWipeModalOpen] = useState(false);
 
-  const [windows, setWindows] = useState<WindowConfig[]>([]);
-  const [nextZIndex, setNextZIndex] = useState(10);
-
-  // --- State Management for App Data ---
-  const [tasks, setTasks] = useState<Task[]>([
+  // --- App Data State ---
+  const [tasks, setTasks] = usePersistentState<Task[]>('focusflow-tasks', [
     { id: '1', title: 'Complete Calculus Assignment', completed: false, project: 'University', priority: 'high', reminder: new Date(Date.now() + 86400000).toISOString() },
     { id: '2', title: 'Review History Notes', completed: true, project: 'University', priority: 'medium' },
     { id: '3', title: 'Buy Groceries', completed: false, project: 'Personal', priority: 'low' },
     { id: '4', title: 'Prepare Presentation Slides', completed: false, project: 'Work', priority: 'high', reminder: new Date(Date.now() + 172800000).toISOString() },
   ]);
-  const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
-  const [activeTimer, setActiveTimer] = useState<ActiveTimer | null>(null);
-  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
+  const [timeEntries, setTimeEntries] = usePersistentState<TimeEntry[]>('focusflow-timeEntries', []);
+  const [activeTimer, setActiveTimer] = usePersistentState<ActiveTimer | null>('focusflow-activeTimer', null);
+  const [journalEntries, setJournalEntries] = usePersistentState<JournalEntry[]>('focusflow-journalEntries', []);
 
-  // --- Effects ---
+  // --- Effects for Themeing ---
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', isDarkMode);
+  }, [isDarkMode]);
+
   useEffect(() => {
     const root = document.documentElement;
-    if (isDarkMode) {
-      root.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      root.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [isDarkMode]);
+    const selectedAccent = accentColors.find(c => c.hex === accentColor) || accentColors[0];
+    root.style.setProperty('--accent-color', selectedAccent.hex);
+    root.style.setProperty('--accent-color-hover', selectedAccent.hoverHex);
+  }, [accentColor]);
+
+  useEffect(() => {
+    const selectedWallpaper = wallpapers.find(w => w.id === wallpaper) || wallpapers[0];
+    document.body.style.backgroundImage = `url(${isDarkMode ? selectedWallpaper.darkUrl : selectedWallpaper.lightUrl})`;
+  }, [wallpaper, isDarkMode]);
 
   const activeWindowId = useMemo(() => {
     if (windows.length === 0) return null;
@@ -58,29 +68,24 @@ const App: React.FC = () => {
 
   const constrainWindowPosition = (config: WindowConfig): { x: number, y: number } => {
     const MENUBAR_HEIGHT = 28;
-    const DOCK_AREA_HEIGHT = 64; // 56px dock + 8px bottom padding for main container
-    const HEADER_HEIGHT = 36; // From Window.tsx h-9
-    const VISIBLE_EDGE_THRESHOLD = 80; // Min pixels of the window to keep visible on horizontal edges
+    const DOCK_AREA_HEIGHT = 64; 
+    const HEADER_HEIGHT = 36;
+    const VISIBLE_EDGE_THRESHOLD = 80;
 
     const availableWidth = window.innerWidth;
-    // This is the height of the <main> element where windows are rendered
     const availableHeight = window.innerHeight - MENUBAR_HEIGHT - DOCK_AREA_HEIGHT;
 
     let newX = config.x;
     let newY = config.y;
 
-    // Constrain Y (vertical): Keep header visible within the main area
-    newY = Math.max(0, newY); // Don't go above the main area
-    newY = Math.min(availableHeight - HEADER_HEIGHT, newY); // Don't let header go under the dock
-    
-    // Constrain X (horizontal): Keep a portion of the window visible
-    newX = Math.max(-config.width + VISIBLE_EDGE_THRESHOLD, newX); // Don't go too far left
-    newX = Math.min(availableWidth - VISIBLE_EDGE_THRESHOLD, newX); // Don't go too far right
+    newY = Math.max(0, newY);
+    newY = Math.min(availableHeight - HEADER_HEIGHT, newY); 
+    newX = Math.max(-config.width + VISIBLE_EDGE_THRESHOLD, newX);
+    newX = Math.min(availableWidth - VISIBLE_EDGE_THRESHOLD, newX);
 
     return { x: newX, y: newY };
   };
 
-  // --- Window Management Handlers ---
   const openWindow = (appId: AppModule) => {
     const existingWindow = windows.find(w => w.id === appId);
     if (existingWindow) {
@@ -96,8 +101,8 @@ const App: React.FC = () => {
       id: appId,
       x: Math.random() * 200 + 50,
       y: Math.random() * 100 + 50,
-      width: 800,
-      height: 600,
+      width: appId === AppModule.SETTINGS ? 700 : 800,
+      height: appId === AppModule.SETTINGS ? 500 : 600,
       zIndex: nextZIndex + 1,
       isMinimized: false,
       isMaximized: false,
@@ -113,7 +118,7 @@ const App: React.FC = () => {
     setWindows(prev => prev.map(w => w.id === appId ? { ...w, isClosing: true } : w));
     setTimeout(() => {
       setWindows(prev => prev.filter(w => w.id !== appId));
-    }, 300); // Match animation duration
+    }, 300);
   };
 
   const minimizeWindow = (appId: AppModule) => setWindows(windows.map(w => w.id === appId ? { ...w, isMinimized: true } : w));
@@ -122,27 +127,11 @@ const App: React.FC = () => {
     setWindows(windows.map(w => {
       if (w.id === appId) {
         if (w.isMaximized) {
-          // Restore
-          const restoredState = {
-            ...w,
-            isMaximized: false,
-            ...w.preMaximizeState, // apply stored dimensions
-            preMaximizeState: undefined,
-          } as WindowConfig;
+          const restoredState = { ...w, isMaximized: false, ...w.preMaximizeState, preMaximizeState: undefined } as WindowConfig;
           const constrainedPos = constrainWindowPosition(restoredState);
           return { ...restoredState, ...constrainedPos };
-
         } else {
-          // Maximize
-          return {
-            ...w,
-            isMaximized: true,
-            preMaximizeState: { x: w.x, y: w.y, width: w.width, height: w.height },
-            x: 0,
-            y: 0,
-            width: window.innerWidth,
-            height: window.innerHeight - 28 - 64, // menubar and dock allowance
-          };
+          return { ...w, isMaximized: true, preMaximizeState: { x: w.x, y: w.y, width: w.width, height: w.height }, x: 0, y: 0, width: window.innerWidth, height: window.innerHeight - 28 - 64 };
         }
       }
       return w;
@@ -197,6 +186,22 @@ const App: React.FC = () => {
     const newEntry: JournalEntry = { id: Date.now().toString(), date: new Date().toISOString(), ...entry };
     setJournalEntries(prev => [newEntry, ...prev]);
   };
+  
+  const handleExportData = () => {
+    const data = { tasks, timeEntries, journalEntries, settings: { isDarkMode, accentColor, wallpaper } };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'focusflow_backup.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleWipeData = () => {
+    Object.keys(localStorage).filter(key => key.startsWith('focusflow-')).forEach(key => localStorage.removeItem(key));
+    window.location.reload();
+  };
 
   // --- Render ---
   const renderAppContent = (appId: AppModule) => {
@@ -208,6 +213,7 @@ const App: React.FC = () => {
       case AppModule.JOURNAL: return <Journal entries={journalEntries} onAddEntry={handleAddJournalEntry} />;
       case AppModule.SOCIAL: return <StudyRoom />;
       case AppModule.CHAT: return <ChatBot isWindowed={true} />;
+      case AppModule.SETTINGS: return <Settings isDarkMode={isDarkMode} onToggleDarkMode={() => setIsDarkMode(!isDarkMode)} accentColor={accentColor} onSetAccentColor={setAccentColor} wallpaper={wallpaper} onSetWallpaper={setWallpaper} onExportData={handleExportData} onWipeData={() => setIsWipeModalOpen(true)} />;
       default: return null;
     }
   };
@@ -218,6 +224,7 @@ const App: React.FC = () => {
         isDarkMode={isDarkMode} 
         onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
         onNewTask={() => openWindow(AppModule.TASKS)}
+        onOpenPreferences={() => openWindow(AppModule.SETTINGS)}
         onCloseWindow={closeActiveWindow}
         onMinimizeWindow={minimizeActiveWindow}
         onToggleMaximize={toggleMaximizeActiveWindow}
@@ -244,6 +251,18 @@ const App: React.FC = () => {
       </main>
 
       <Dock openWindows={windows} onLaunch={openWindow} onFocus={focusWindow}/>
+
+      <ConfirmationModal 
+        isOpen={isWipeModalOpen}
+        onClose={() => setIsWipeModalOpen(false)}
+        onConfirm={() => {
+          setIsWipeModalOpen(false);
+          handleWipeData();
+        }}
+        title="Reset All Data"
+        message="Are you sure you want to delete all your data? This action is irreversible and will reset the application to its default state."
+        confirmText="Yes, Reset Everything"
+      />
     </div>
   );
 };
