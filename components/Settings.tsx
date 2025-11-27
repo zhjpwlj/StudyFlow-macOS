@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Palette, Image as ImageIcon, Database, Trash2, Check, Sun, Moon } from 'lucide-react';
-import { wallpapers, accentColors } from '../config/theme';
+import { wallpapers, accentColors } from '../config/theme.ts';
 
 interface SettingsProps {
   isDarkMode: boolean;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Sun, Moon, Wifi, Check } from 'lucide-react';
-import { WindowConfig, AppModule } from '../types';
+import { WindowConfig, AppModule } from '../types.ts';
 
 interface MenuBarProps {
   isDarkMode: boolean;

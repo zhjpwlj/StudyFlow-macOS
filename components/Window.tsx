@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { WindowConfig, AppModule } from '../types';
+import { WindowConfig, AppModule } from '../types.ts';
 
 interface WindowProps {
   children: React.ReactNode;

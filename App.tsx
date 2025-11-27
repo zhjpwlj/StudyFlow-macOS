@@ -1,19 +1,19 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import MenuBar from './components/MenuBar';
-import Dock from './components/Dock';
-import Window from './components/Window';
-import Dashboard from './components/Dashboard';
-import TaskList from './components/TaskList';
-import FocusTimer from './components/FocusTimer';
-import TimeTracker from './components/TimeTracker';
-import Journal from './components/Journal';
-import StudyRoom from './components/StudyRoom';
-import ChatBot from './components/ChatBot';
-import Settings from './components/Settings';
-import ConfirmationModal from './components/ConfirmationModal';
-import { AppModule, Task, TimeEntry, JournalEntry, ActiveTimer, WindowConfig } from './types';
-import { usePersistentState } from './hooks/usePersistentState';
-import { wallpapers, accentColors } from './config/theme';
+import MenuBar from './components/MenuBar.tsx';
+import Dock from './components/Dock.tsx';
+import Window from './components/Window.tsx';
+import Dashboard from './components/Dashboard.tsx';
+import TaskList from './components/TaskList.tsx';
+import FocusTimer from './components/FocusTimer.tsx';
+import TimeTracker from './components/TimeTracker.tsx';
+import Journal from './components/Journal.tsx';
+import StudyRoom from './components/StudyRoom.tsx';
+import ChatBot from './components/ChatBot.tsx';
+import Settings from './components/Settings.tsx';
+import ConfirmationModal from './components/ConfirmationModal.tsx';
+import { AppModule, Task, TimeEntry, JournalEntry, ActiveTimer, WindowConfig } from './types.ts';
+import { usePersistentState } from './hooks/usePersistentState.ts';
+import { wallpapers, accentColors } from './config/theme.ts';
 
 const App: React.FC = () => {
   // --- UI State ---

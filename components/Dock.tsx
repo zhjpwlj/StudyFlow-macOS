@@ -1,6 +1,6 @@
 import React from 'react';
 import { LayoutDashboard, CheckSquare, Timer, Clock, BookOpen, Users, Settings, BrainCircuit } from 'lucide-react';
-import { AppModule, WindowConfig } from '../types';
+import { AppModule, WindowConfig } from '../types.ts';
 
 interface DockProps {
   openWindows: WindowConfig[];

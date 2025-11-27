@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, BrainCircuit, Loader2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { ChatMessage } from '../types';
-import { createChatSession, sendMessageStream } from '../services/geminiService';
+import { ChatMessage } from '../types.ts';
+import { createChatSession, sendMessageStream } from '../services/geminiService.ts';
 import { Chat, GenerateContentResponse } from "@google/genai";
 
 interface ChatBotProps {

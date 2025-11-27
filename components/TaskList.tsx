@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Task } from '../types';
+import { Task } from '../types.ts';
 import { Plus, Search, Check, Trash2, ArrowUpDown, AlertCircle, Clock } from 'lucide-react';
 
 interface TaskListProps {

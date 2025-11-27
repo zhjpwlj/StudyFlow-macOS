@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { JournalEntry } from '../types';
+import { JournalEntry } from '../types.ts';
 import { Smile, Meh, Frown, Zap, Plus, Calendar, BookOpen } from 'lucide-react';
 
 interface JournalProps {
