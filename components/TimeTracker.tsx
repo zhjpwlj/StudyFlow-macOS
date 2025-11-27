@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TimeEntry, ActiveTimer } from '../types.ts';
+import { TimeEntry, ActiveTimer } from '../types';
 import { Play, Square, Clock } from 'lucide-react';
 
 interface TimeTrackerProps {

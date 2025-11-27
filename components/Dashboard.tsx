@@ -1,5 +1,5 @@
 import React from 'react';
-import { Task, TimeEntry } from '../types.ts';
+import { Task, TimeEntry } from '../types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Clock, CheckCircle2, Flame, Calendar } from 'lucide-react';
 
