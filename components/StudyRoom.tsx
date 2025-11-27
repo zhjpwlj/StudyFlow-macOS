@@ -37,7 +37,7 @@ const StudyRoom: React.FC = () => {
               ))}
           </div>
 
-          <div className="bg-white dark:bg-slate-800/50 rounded-lg border border-gray-200 dark:border-slate-700/50 flex flex-col h-full overflow-hidden">
+          <div className="bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700/50 flex flex-col h-full overflow-hidden">
               <div className="p-3 border-b border-gray-200 dark:border-slate-700 font-semibold text-slate-900 dark:text-white text-sm">Live Chat</div>
               <div className="flex-1 overflow-y-auto p-3 space-y-3 text-sm">
                   <div><span className="font-bold text-indigo-600 dark:text-indigo-400">Sarah:</span> Good luck everyone!</div>

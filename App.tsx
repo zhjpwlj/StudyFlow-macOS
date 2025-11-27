@@ -52,11 +52,6 @@ const App: React.FC = () => {
     root.style.setProperty('--accent-color-hover', selectedAccent.hoverHex);
   }, [accentColor]);
 
-  useEffect(() => {
-    const selectedWallpaper = wallpapers.find(w => w.id === wallpaper) || wallpapers[0];
-    document.body.style.backgroundImage = `url(${isDarkMode ? selectedWallpaper.darkUrl : selectedWallpaper.lightUrl})`;
-  }, [wallpaper, isDarkMode]);
-
   const activeWindowId = useMemo(() => {
     if (windows.length === 0) return null;
     const activeWindows = windows.filter(w => !w.isMinimized);
@@ -217,9 +212,17 @@ const App: React.FC = () => {
       default: return null;
     }
   };
+  
+  const selectedWallpaper = wallpapers.find(w => w.id === wallpaper) || wallpapers[0];
+  const wallpaperUrl = isDarkMode ? selectedWallpaper.darkUrl : selectedWallpaper.lightUrl;
 
   return (
     <div className={`h-full w-full overflow-hidden font-sans ${isDarkMode ? 'dark' : ''}`}>
+      <div 
+        className="absolute inset-0 z-0 bg-cover bg-center transition-all duration-500 ease-in-out"
+        style={{ backgroundImage: `url(${wallpaperUrl})` }}
+      />
+      
       <MenuBar 
         isDarkMode={isDarkMode} 
         onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}

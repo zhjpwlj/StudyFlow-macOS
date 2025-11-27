@@ -77,7 +77,7 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onToggleTask, onD
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 bg-white dark:bg-slate-800/50 rounded-lg border border-gray-200 dark:border-slate-700/50 shadow-inner overflow-hidden flex flex-col">
+      <div className="flex-1 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700/50 shadow-inner overflow-hidden flex flex-col">
         {/* Task List */}
         <div className="overflow-y-auto flex-1 p-2">
           {filteredTasks.length > 0 ? (

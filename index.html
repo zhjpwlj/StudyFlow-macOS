@@ -47,11 +47,7 @@
       }
       body {
         font-family: 'SF Pro Text', 'Inter', sans-serif;
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
         overflow: hidden; /* Prevent scrolling of the desktop */
-        transition: background-image 0.5s ease-in-out;
       }
        /* Custom scrollbar for webkit */
       ::-webkit-scrollbar {
@@ -75,21 +71,24 @@
         background: rgba(0, 0, 0, 0.6);
       }
     </style>
-  <script type="importmap">
+<script type="importmap">
 {
   "imports": {
     "react": "https://aistudiocdn.com/react@^19.2.0",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
     "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
     "react-markdown": "https://aistudiocdn.com/react-markdown@^10.1.0",
-    "recharts": "https://aistudiocdn.com/recharts@^3.5.0"
+    "recharts": "https://aistudiocdn.com/recharts@^3.5.0",
+    "vite": "https://aistudiocdn.com/vite@^7.2.4",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1"
   }
 }
 </script>
 </head>
   <body class="bg-gray-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300">
     <div id="root" class="h-screen w-screen"></div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>

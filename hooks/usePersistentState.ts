@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+// FIX: Import `Dispatch` and `SetStateAction` to resolve 'Cannot find namespace' error.
+import { useState, useEffect, Dispatch, SetStateAction } from 'react';
 
 // Custom hook to persist state in localStorage
 // FIX: Support lazy initializer for initialValue, aligning with useState behavior.
 // This resolves a type error in App.tsx where a function was passed as the initial value.
-export function usePersistentState<T>(key: string, initialValue: T | (() => T)): [T, React.Dispatch<React.SetStateAction<T>>] {
+// FIX: Use imported `Dispatch` and `SetStateAction` types directly.
+export function usePersistentState<T>(key: string, initialValue: T | (() => T)): [T, Dispatch<SetStateAction<T>>] {
   const [state, setState] = useState<T>(() => {
     const getInitialValue = () => {
       if (typeof initialValue === 'function') {

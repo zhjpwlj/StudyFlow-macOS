@@ -40,7 +40,7 @@ const Journal: React.FC<JournalProps> = ({ entries, onAddEntry }) => {
 
       <div className="flex-1 overflow-y-auto space-y-3">
         {isWriting && (
-          <div className="bg-white dark:bg-slate-800/50 rounded-lg border border-gray-200 dark:border-slate-700/50 p-4 space-y-3">
+          <div className="bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700/50 p-4 space-y-3">
             <form onSubmit={handleSubmit}>
               <div className="flex items-center justify-between">
                 <input type="text" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="Entry Title" className="flex-1 bg-transparent text-lg font-bold text-slate-900 dark:text-white border-none focus:ring-0 p-0" autoFocus />
@@ -59,7 +59,7 @@ const Journal: React.FC<JournalProps> = ({ entries, onAddEntry }) => {
         )}
         {entries.length > 0 ? (
           entries.map(entry => (
-            <div key={entry.id} className="bg-white dark:bg-slate-800/50 rounded-lg border border-gray-200 dark:border-slate-700/50 p-4">
+            <div key={entry.id} className="bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700/50 p-4">
               <div className="flex items-start gap-3 mb-2">
                 <div className="p-2 bg-gray-100 dark:bg-slate-700 rounded-full">{getMoodIcon(entry.mood)}</div>
                 <div>

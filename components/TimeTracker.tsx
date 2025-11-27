@@ -45,7 +45,7 @@ const TimeTracker: React.FC<TimeTrackerProps> = ({ timeEntries, activeTimer, onS
   return (
     <div className="h-full flex flex-col">
       <div className="p-4 border-b border-white/20 dark:border-black/20 flex-shrink-0">
-        <form onSubmit={handleStart} className="flex flex-col md:flex-row gap-3 items-center bg-white/50 dark:bg-slate-700/50 p-3 rounded-lg">
+        <form onSubmit={handleStart} className="flex flex-col md:flex-row gap-3 items-center bg-white dark:bg-slate-700 p-3 rounded-lg">
           <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What are you working on?" disabled={!!activeTimer} className="flex-1 w-full bg-transparent border-0 focus:ring-0 text-lg text-slate-900 dark:text-white" />
           <div className="flex items-center gap-2">
             <select value={project} onChange={(e) => setProject(e.target.value)} disabled={!!activeTimer} className="bg-transparent border-0 text-sm font-medium text-slate-700 dark:text-slate-200 focus:ring-0"><option>General</option><option>University</option><option>Work</option></select>
@@ -61,7 +61,7 @@ const TimeTracker: React.FC<TimeTrackerProps> = ({ timeEntries, activeTimer, onS
         {timeEntries.length > 0 ? (
           <div className="space-y-3">
             {timeEntries.map(entry => (
-              <div key={entry.id} className="bg-white dark:bg-slate-800/50 p-3 rounded-lg border border-gray-200 dark:border-slate-700/50 flex items-center justify-between">
+              <div key={entry.id} className="bg-white dark:bg-slate-800 p-3 rounded-lg border border-gray-200 dark:border-slate-700/50 flex items-center justify-between">
                 <div>
                   <h4 className="font-medium text-slate-900 dark:text-white">{entry.description}</h4>
                   <span className="text-sm text-gray-500 dark:text-gray-400">{entry.project}</span>

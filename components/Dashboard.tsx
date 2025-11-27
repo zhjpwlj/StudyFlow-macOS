@@ -43,7 +43,7 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks, timeEntries, onToggleTask 
   const todayIndex = 6; // Today is always the last item in our reversed array
 
   const StatCard: React.FC<{ icon: React.ReactNode; title: string; value: string; detail: React.ReactNode }> = ({ icon, title, value, detail }) => (
-    <div className="bg-white dark:bg-slate-800/50 p-4 rounded-lg border border-gray-200 dark:border-slate-700/50">
+    <div className="bg-white dark:bg-slate-800 p-4 rounded-lg border border-gray-200 dark:border-slate-700/50">
       <div className="flex items-center justify-between mb-2">
         <span className="text-gray-500 dark:text-gray-400 text-xs font-medium">{title}</span>
         {icon}
@@ -76,7 +76,7 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks, timeEntries, onToggleTask 
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white dark:bg-slate-800/50 p-4 rounded-lg border border-gray-200 dark:border-slate-700/50">
+        <div className="lg:col-span-2 bg-white dark:bg-slate-800 p-4 rounded-lg border border-gray-200 dark:border-slate-700/50">
            <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-4">Weekly Activity</h3>
            <div style={{ width: '100%', height: 250 }}>
              <ResponsiveContainer width="100%" height="100%">
@@ -93,7 +93,7 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks, timeEntries, onToggleTask 
            </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800/50 p-4 rounded-lg border border-gray-200 dark:border-slate-700/50">
+        <div className="bg-white dark:bg-slate-800 p-4 rounded-lg border border-gray-200 dark:border-slate-700/50">
            <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-4">Today's Priorities</h3>
            <div className="space-y-2">
              {tasks.slice(0, 4).map(task => (

@@ -185,7 +185,7 @@ const Window: React.FC<WindowProps> = ({ children, config, onClose, onMinimize, 
       </div>
       
       {/* Content */}
-      <div className="flex-1 bg-gray-50/80 dark:bg-slate-900/80 overflow-y-auto">
+      <div className="flex-1 bg-transparent overflow-y-auto">
         {children}
       </div>
     </div>

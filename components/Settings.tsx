@@ -23,7 +23,7 @@ const Settings: React.FC<SettingsProps> = ({ isDarkMode, onToggleDarkMode, accen
 
   return (
     <div className="h-full flex">
-      <aside className="w-48 bg-white/50 dark:bg-slate-800/50 p-3 border-r border-white/20 dark:border-black/20">
+      <aside className="w-48 bg-black/5 dark:bg-white/5 p-3 border-r border-white/20 dark:border-black/20">
         <nav className="space-y-1">
           {tabs.map(tab => (
             <button
@@ -46,7 +46,7 @@ const Settings: React.FC<SettingsProps> = ({ isDarkMode, onToggleDarkMode, accen
           <div className="space-y-8">
             <section>
               <h3 className="text-lg font-bold mb-3 text-slate-900 dark:text-white">Theme</h3>
-              <div className="bg-white dark:bg-slate-800/50 p-4 rounded-lg border border-gray-200 dark:border-slate-700/50 flex items-center justify-between">
+              <div className="bg-white dark:bg-slate-800 p-4 rounded-lg border border-gray-200 dark:border-slate-700/50 flex items-center justify-between">
                 <p className="text-sm font-medium">Dark Mode</p>
                 <button onClick={onToggleDarkMode} className="flex items-center gap-2 p-1 bg-gray-200 dark:bg-slate-700 rounded-full">
                     <span className={`p-1.5 rounded-full transition-colors ${!isDarkMode ? 'bg-white shadow' : ''}`}><Sun size={14}/></span>
@@ -91,7 +91,7 @@ const Settings: React.FC<SettingsProps> = ({ isDarkMode, onToggleDarkMode, accen
           <div className="space-y-8">
             <section>
               <h3 className="text-lg font-bold mb-3 text-slate-900 dark:text-white">Manage Data</h3>
-              <div className="bg-white dark:bg-slate-800/50 p-4 rounded-lg border border-gray-200 dark:border-slate-700/50">
+              <div className="bg-white dark:bg-slate-800 p-4 rounded-lg border border-gray-200 dark:border-slate-700/50">
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-semibold">Export Data</h4>
@@ -103,7 +103,7 @@ const Settings: React.FC<SettingsProps> = ({ isDarkMode, onToggleDarkMode, accen
             </section>
             <section>
               <h3 className="text-lg font-bold mb-3 text-red-500">Danger Zone</h3>
-              <div className="bg-white dark:bg-slate-800/50 p-4 rounded-lg border border-red-500/50">
+              <div className="bg-white dark:bg-slate-800 p-4 rounded-lg border border-red-500/50">
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-semibold">Reset Application</h4>
