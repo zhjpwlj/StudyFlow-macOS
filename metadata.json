@@ -1,5 +1,7 @@
 {
   "name": "Copy of FocusFlow",
   "description": "The ultimate all-in-one productivity platform unifying time tracking, task management, Pomodoro, and AI-powered study assistance into a modular, customizable system.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [
+    "geolocation"
+  ]
 }

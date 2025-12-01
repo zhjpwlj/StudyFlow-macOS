@@ -8,7 +8,14 @@ export enum AppModule {
   JOURNAL = 'JOURNAL',
   SOCIAL = 'SOCIAL',
   CHAT = 'CHAT',
-  SETTINGS = 'SETTINGS'
+  SETTINGS = 'SETTINGS',
+  CALCULATOR = 'CALCULATOR',
+  NOTES = 'NOTES',
+  WEATHER = 'WEATHER',
+  CLOCK = 'CLOCK',
+  CALENDAR = 'CALENDAR',
+  GOALS = 'GOALS',
+  MUSIC = 'MUSIC'
 }
 
 export interface WindowConfig {
@@ -53,8 +60,9 @@ export interface JournalEntry {
   id: string;
   date: string;
   content: string;
-  mood: 'happy' | 'neutral' | 'focused' | 'tired';
   title: string;
+  moodRatings?: Record<string, number>;
+  mood: 'happy' | 'neutral' | 'focused' | 'tired';
 }
 
 export interface ChatMessage {
@@ -62,4 +70,24 @@ export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
   isThinking?: boolean;
+}
+
+export interface Note {
+  id: string;
+  content: string;
+  createdAt: number;
+}
+
+export interface Event {
+  id: string;
+  date: string; // YYYY-MM-DD
+  title: string;
+  color: string;
+}
+
+export interface Goal {
+  id: string;
+  date: string; // YYYY-MM-DD
+  title: string;
+  completed: boolean;
 }

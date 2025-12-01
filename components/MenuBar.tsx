@@ -26,6 +26,13 @@ const getTitle = (id: AppModule) => {
     [AppModule.SOCIAL]: 'Study Room',
     [AppModule.CHAT]: 'FocusFlow AI',
     [AppModule.SETTINGS]: 'Settings',
+    [AppModule.CALCULATOR]: 'Calculator',
+    [AppModule.NOTES]: 'Notes',
+    [AppModule.WEATHER]: 'Weather',
+    [AppModule.CLOCK]: 'Clock',
+    [AppModule.CALENDAR]: 'Calendar',
+    [AppModule.GOALS]: 'Goals',
+    [AppModule.MUSIC]: 'Music',
   };
   return titles[id] || 'Application';
 };

@@ -20,6 +20,10 @@ const getTitle = (id: AppModule) => {
         case AppModule.JOURNAL: return 'Journal';
         case AppModule.SOCIAL: return 'Study Room';
         case AppModule.CHAT: return 'FocusFlow AI';
+        case AppModule.SETTINGS: return 'Settings';
+        case AppModule.CALCULATOR: return 'Calculator';
+        case AppModule.NOTES: return 'Notes';
+        case AppModule.WEATHER: return 'Weather';
         default: return 'Application';
     }
 };
@@ -51,6 +55,9 @@ const Window: React.FC<WindowProps> = ({ children, config, onClose, onMinimize, 
   ) => {
     if ('button' in e && e.button !== 0) return;
     if (config.isMaximized) return;
+
+    // Check if clicking a button in the title bar
+    if (action === 'drag' && (e.target as HTMLElement).closest('button')) return;
 
     e.stopPropagation();
     onFocus();

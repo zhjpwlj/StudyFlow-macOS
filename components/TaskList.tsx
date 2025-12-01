@@ -64,8 +64,8 @@ const TaskList: React.FC<TaskListProps> = ({ tasks, onAddTask, onToggleTask, onD
         </div>
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input type="text" placeholder="Search..." className="pl-9 pr-4 py-2 w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-[var(--accent-color)]" />
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-10" />
+            <input type="text" placeholder="Search..." className="pl-9 pr-4 py-2 w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-[var(--accent-color)] relative z-0" />
           </div>
           <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)}
             className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-[var(--accent-color)] p-2">

@@ -11,12 +11,19 @@ import StudyRoom from './components/StudyRoom';
 import ChatBot from './components/ChatBot';
 import Settings from './components/Settings';
 import ConfirmationModal from './components/ConfirmationModal';
-import { AppModule, Task, TimeEntry, JournalEntry, ActiveTimer, WindowConfig } from './types';
+import Calculator from './components/Calculator';
+import Notes from './components/Notes';
+import Weather from './components/Weather';
+import Clock from './components/Clock';
+import Calendar from './components/Calendar';
+import Goals from './components/Goals';
+import Music from './components/Music';
+import { AppModule, Task, TimeEntry, JournalEntry, ActiveTimer, WindowConfig, Note, Event, Goal } from './types';
 import { usePersistentState } from './hooks/usePersistentState';
 import { wallpapers, accentColors } from './config/theme';
 
 const App: React.FC = () => {
-  // --- UI State ---
+  // State definitions
   const [isDarkMode, setIsDarkMode] = usePersistentState<boolean>('focusflow-theme-dark', () => {
     if (typeof window !== 'undefined') {
       return window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -29,7 +36,7 @@ const App: React.FC = () => {
   const [nextZIndex, setNextZIndex] = usePersistentState<number>('focusflow-zIndex', 10);
   const [isWipeModalOpen, setIsWipeModalOpen] = useState(false);
 
-  // --- App Data State ---
+  // Data States
   const [tasks, setTasks] = usePersistentState<Task[]>('focusflow-tasks', [
     { id: '1', title: 'Complete Calculus Assignment', completed: false, project: 'University', priority: 'high', reminder: new Date(Date.now() + 86400000).toISOString() },
     { id: '2', title: 'Review History Notes', completed: true, project: 'University', priority: 'medium' },
@@ -39,12 +46,20 @@ const App: React.FC = () => {
   const [timeEntries, setTimeEntries] = usePersistentState<TimeEntry[]>('focusflow-timeEntries', []);
   const [activeTimer, setActiveTimer] = usePersistentState<ActiveTimer | null>('focusflow-activeTimer', null);
   const [journalEntries, setJournalEntries] = usePersistentState<JournalEntry[]>('focusflow-journalEntries', []);
+  const [notes, setNotes] = usePersistentState<Note[]>('focusflow-notes', []);
+  const [events, setEvents] = usePersistentState<Event[]>('focusflow-events', []);
+  const [goals, setGoals] = usePersistentState<Goal[]>('focusflow-goals', []);
 
-  // --- Effects for Themeing ---
+  // Effect for Dark Mode
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDarkMode);
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   }, [isDarkMode]);
 
+  // Effect for Accent Color
   useEffect(() => {
     const root = document.documentElement;
     const selectedAccent = accentColors.find(c => c.hex === accentColor) || accentColors[0];
@@ -52,219 +67,193 @@ const App: React.FC = () => {
     root.style.setProperty('--accent-color-hover', selectedAccent.hoverHex);
   }, [accentColor]);
 
+  // Active Window Logic
   const activeWindowId = useMemo(() => {
     if (windows.length === 0) return null;
     const activeWindows = windows.filter(w => !w.isMinimized);
     if (activeWindows.length === 0) return null;
-    return activeWindows.reduce((a, b) => a.zIndex > b.zIndex ? a : b).id;
+    return activeWindows.reduce((prev, current) => (prev.zIndex > current.zIndex ? prev : current)).id;
   }, [windows]);
 
-  // --- Window Management Logic ---
-
-  const constrainWindowPosition = (config: WindowConfig): { x: number, y: number } => {
-    const MENUBAR_HEIGHT = 28;
-    const DOCK_AREA_HEIGHT = 64; 
-    const HEADER_HEIGHT = 36;
-    const VISIBLE_EDGE_THRESHOLD = 80;
-
-    const availableWidth = window.innerWidth;
-    const availableHeight = window.innerHeight - MENUBAR_HEIGHT - DOCK_AREA_HEIGHT;
-
-    let newX = config.x;
-    let newY = config.y;
-
-    newY = Math.max(0, newY);
-    newY = Math.min(availableHeight - HEADER_HEIGHT, newY); 
-    newX = Math.max(-config.width + VISIBLE_EDGE_THRESHOLD, newX);
-    newX = Math.min(availableWidth - VISIBLE_EDGE_THRESHOLD, newX);
-
-    return { x: newX, y: newY };
-  };
-
-  const openWindow = (appId: AppModule) => {
-    const existingWindow = windows.find(w => w.id === appId);
-    if (existingWindow) {
-      focusWindow(appId);
-      if (existingWindow.isMinimized) {
-          setWindows(windows.map(w => w.id === appId ? { ...w, isMinimized: false, zIndex: nextZIndex + 1 } : w));
-          setNextZIndex(nextZIndex + 1);
+  // Window Management Functions
+  const handleLaunch = (id: AppModule) => {
+    setWindows(prev => {
+      const existing = prev.find(w => w.id === id);
+      if (existing) {
+        // If minimized, unminimize. Bring to front.
+        return prev.map(w => w.id === id ? { ...w, isMinimized: false, zIndex: nextZIndex } : w);
       }
-      return;
-    }
-    
-    const baseConfig: WindowConfig = {
-      id: appId,
-      x: Math.random() * 200 + 50,
-      y: Math.random() * 100 + 50,
-      width: appId === AppModule.SETTINGS ? 700 : 800,
-      height: appId === AppModule.SETTINGS ? 500 : 600,
-      zIndex: nextZIndex + 1,
-      isMinimized: false,
-      isMaximized: false,
-    };
-    const constrainedPos = constrainWindowPosition(baseConfig);
-    const newWindow: WindowConfig = { ...baseConfig, ...constrainedPos };
-
-    setWindows([...windows, newWindow]);
-    setNextZIndex(nextZIndex + 1);
-  };
-  
-  const closeWindow = (appId: AppModule) => {
-    setWindows(prev => prev.map(w => w.id === appId ? { ...w, isClosing: true } : w));
-    setTimeout(() => {
-      setWindows(prev => prev.filter(w => w.id !== appId));
-    }, 300);
+      // Open new window
+      const width = id === AppModule.CALCULATOR ? 320 : id === AppModule.TIMER ? 400 : 800;
+      const height = id === AppModule.CALCULATOR ? 450 : id === AppModule.TIMER ? 500 : 600;
+      return [...prev, {
+        id,
+        x: 50 + (prev.length * 20),
+        y: 50 + (prev.length * 20),
+        width,
+        height,
+        zIndex: nextZIndex,
+        isMinimized: false,
+        isMaximized: false
+      }];
+    });
+    setNextZIndex(prev => prev + 1);
   };
 
-  const minimizeWindow = (appId: AppModule) => setWindows(windows.map(w => w.id === appId ? { ...w, isMinimized: true } : w));
-  
-  const toggleMaximizeWindow = (appId: AppModule) => {
-    setWindows(windows.map(w => {
-      if (w.id === appId) {
-        if (w.isMaximized) {
-          const restoredState = { ...w, isMaximized: false, ...w.preMaximizeState, preMaximizeState: undefined } as WindowConfig;
-          const constrainedPos = constrainWindowPosition(restoredState);
-          return { ...restoredState, ...constrainedPos };
-        } else {
-          return { ...w, isMaximized: true, preMaximizeState: { x: w.x, y: w.y, width: w.width, height: w.height }, x: 0, y: 0, width: window.innerWidth, height: window.innerHeight - 28 - 64 };
-        }
+  const handleClose = (id: AppModule) => {
+    setWindows(prev => prev.filter(w => w.id !== id));
+  };
+
+  const handleFocus = (id: AppModule) => {
+    setWindows(prev => prev.map(w => w.id === id ? { ...w, zIndex: nextZIndex } : w));
+    setNextZIndex(prev => prev + 1);
+  };
+
+  const handleMinimize = (id: AppModule) => {
+    setWindows(prev => prev.map(w => w.id === id ? { ...w, isMinimized: true } : w));
+  };
+
+  const handleToggleMaximize = (id: AppModule) => {
+    setWindows(prev => prev.map(w => {
+      if (w.id !== id) return w;
+      if (w.isMaximized) {
+        // Restore
+        return { ...w, isMaximized: false, x: w.preMaximizeState?.x || w.x, y: w.preMaximizeState?.y || w.y, width: w.preMaximizeState?.width || w.width, height: w.preMaximizeState?.height || w.height };
+      } else {
+        // Maximize
+        return {
+          ...w,
+          isMaximized: true,
+          preMaximizeState: { x: w.x, y: w.y, width: w.width, height: w.height }
+        };
       }
-      return w;
     }));
+    handleFocus(id);
   };
 
-  const focusWindow = (appId: AppModule) => {
-    const window = windows.find(w => w.id === appId);
-    if(window && window.zIndex < nextZIndex) {
-        setWindows(windows.map(w => w.id === appId ? { ...w, zIndex: nextZIndex + 1, isMinimized: false } : w));
-        setNextZIndex(nextZIndex + 1);
+  const handleUpdateWindow = (id: AppModule, updates: Partial<WindowConfig>) => {
+    setWindows(prev => prev.map(w => w.id === id ? { ...w, ...updates } : w));
+  };
+
+  const handleCloseAll = () => setWindows([]);
+
+  // Data Handlers
+  const addTask = (title: string, project: string, priority: 'low' | 'medium' | 'high', reminder?: string) => {
+    setTasks(prev => [...prev, { id: Date.now().toString(), title, completed: false, project, priority, reminder }]);
+  };
+  const toggleTask = (id: string) => setTasks(prev => prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
+  const deleteTask = (id: string) => setTasks(prev => prev.filter(t => t.id !== id));
+
+  const startTimer = (description: string, project: string) => setActiveTimer({ startTime: Date.now(), description, project });
+  const stopTimer = () => {
+    if (activeTimer) {
+      const duration = Math.floor((Date.now() - activeTimer.startTime) / 1000);
+      setTimeEntries(prev => [{ id: Date.now().toString(), description: activeTimer.description, project: activeTimer.project, startTime: activeTimer.startTime, endTime: Date.now(), duration }, ...prev]);
+      setActiveTimer(null);
     }
   };
 
-  const updateWindow = (appId: AppModule, updates: Partial<WindowConfig>) => {
-    setWindows(windows.map(w => {
-      if (w.id === appId) {
-        const potentialUpdate = { ...w, ...updates } as WindowConfig;
-        const constrainedPos = constrainWindowPosition(potentialUpdate);
-        return { ...potentialUpdate, ...constrainedPos };
-      }
-      return w;
-    }));
+  const addJournalEntry = (entry: Omit<JournalEntry, 'id' | 'date'>) => {
+    setJournalEntries(prev => [{ id: Date.now().toString(), date: new Date().toISOString(), ...entry }, ...prev]);
   };
 
-  const closeActiveWindow = () => activeWindowId && closeWindow(activeWindowId);
-  const minimizeActiveWindow = () => activeWindowId && minimizeWindow(activeWindowId);
-  const toggleMaximizeActiveWindow = () => activeWindowId && toggleMaximizeWindow(activeWindowId);
-  const closeAllWindows = () => {
-    setWindows(prev => prev.map(w => ({ ...w, isClosing: true })));
-    setTimeout(() => setWindows([]), 300);
-  };
+  const addNote = () => setNotes(prev => [{ id: Date.now().toString(), content: '', createdAt: Date.now() }, ...prev]);
+  const updateNote = (id: string, content: string) => setNotes(prev => prev.map(n => n.id === id ? { ...n, content } : n));
+  const deleteNote = (id: string) => setNotes(prev => prev.filter(n => n.id !== id));
 
-  // --- Data Handlers ---
-  const handleAddTask = (title: string, project: string, priority: 'low' | 'medium' | 'high' = 'medium', reminder?: string) => {
-    const newTask: Task = { id: Date.now().toString(), title, completed: false, project: project || 'General', priority, reminder };
-    setTasks(prev => [newTask, ...prev]);
-    openWindow(AppModule.TASKS);
-  };
-  const handleToggleTask = (id: string) => setTasks(prev => prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
-  const handleDeleteTask = (id: string) => setTasks(prev => prev.filter(t => t.id !== id));
-  const handleStartTimer = (description: string, project: string) => setActiveTimer({ startTime: Date.now(), description, project });
-  const handleStopTimer = () => {
-    if (!activeTimer) return;
-    const endTime = Date.now();
-    const duration = Math.floor((endTime - activeTimer.startTime) / 1000);
-    const newEntry: TimeEntry = { id: Date.now().toString(), description: activeTimer.description, startTime: activeTimer.startTime, endTime, duration, project: activeTimer.project };
-    setTimeEntries(prev => [newEntry, ...prev]);
-    setActiveTimer(null);
-  };
-  const handleAddJournalEntry = (entry: Omit<JournalEntry, 'id' | 'date'>) => {
-    const newEntry: JournalEntry = { id: Date.now().toString(), date: new Date().toISOString(), ...entry };
-    setJournalEntries(prev => [newEntry, ...prev]);
-  };
-  
-  const handleExportData = () => {
-    const data = { tasks, timeEntries, journalEntries, settings: { isDarkMode, accentColor, wallpaper } };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'focusflow_backup.json';
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  const addEvent = (event: Omit<Event, 'id'>) => setEvents(prev => [...prev, { id: Date.now().toString(), ...event }]);
+  const deleteEvent = (id: string) => setEvents(prev => prev.filter(e => e.id !== id));
+
+  const addGoal = (goal: Omit<Goal, 'id'>) => setGoals(prev => [...prev, { id: Date.now().toString(), ...goal }]);
+  const toggleGoal = (id: string) => setGoals(prev => prev.map(g => g.id === id ? { ...g, completed: !g.completed } : g));
+  const deleteGoal = (id: string) => setGoals(prev => prev.filter(g => g.id !== id));
 
   const handleWipeData = () => {
-    Object.keys(localStorage).filter(key => key.startsWith('focusflow-')).forEach(key => localStorage.removeItem(key));
+    setTasks([]); setTimeEntries([]); setActiveTimer(null); setJournalEntries([]); setNotes([]); setEvents([]); setGoals([]);
+    setWindows([]);
+    localStorage.clear(); // Nuclear option
     window.location.reload();
   };
 
-  // --- Render ---
-  const renderAppContent = (appId: AppModule) => {
-    switch (appId) {
-      case AppModule.DASHBOARD: return <Dashboard tasks={tasks} timeEntries={timeEntries} onToggleTask={handleToggleTask}/>;
-      case AppModule.TASKS: return <TaskList tasks={tasks} onAddTask={handleAddTask} onToggleTask={handleToggleTask} onDeleteTask={handleDeleteTask} />;
+  const getWallpaperUrl = () => {
+    const wp = wallpapers.find(w => w.id === wallpaper) || wallpapers[0];
+    return isDarkMode ? wp.darkUrl : wp.lightUrl;
+  };
+
+  const renderApp = (id: AppModule) => {
+    switch (id) {
+      case AppModule.DASHBOARD: return <Dashboard tasks={tasks} timeEntries={timeEntries} onToggleTask={toggleTask} />;
+      case AppModule.TASKS: return <TaskList tasks={tasks} onAddTask={addTask} onToggleTask={toggleTask} onDeleteTask={deleteTask} />;
+      case AppModule.TIMER: return <TimeTracker timeEntries={timeEntries} activeTimer={activeTimer} onStartTimer={startTimer} onStopTimer={stopTimer} />;
       case AppModule.POMODORO: return <FocusTimer />;
-      case AppModule.TIMER: return <TimeTracker timeEntries={timeEntries} activeTimer={activeTimer} onStartTimer={handleStartTimer} onStopTimer={handleStopTimer} />;
-      case AppModule.JOURNAL: return <Journal entries={journalEntries} onAddEntry={handleAddJournalEntry} />;
+      case AppModule.JOURNAL: return <Journal entries={journalEntries} onAddEntry={addJournalEntry} />;
       case AppModule.SOCIAL: return <StudyRoom />;
       case AppModule.CHAT: return <ChatBot isWindowed={true} />;
-      case AppModule.SETTINGS: return <Settings isDarkMode={isDarkMode} onToggleDarkMode={() => setIsDarkMode(!isDarkMode)} accentColor={accentColor} onSetAccentColor={setAccentColor} wallpaper={wallpaper} onSetWallpaper={setWallpaper} onExportData={handleExportData} onWipeData={() => setIsWipeModalOpen(true)} />;
-      default: return null;
+      case AppModule.SETTINGS: return <Settings isDarkMode={isDarkMode} onToggleDarkMode={() => setIsDarkMode(!isDarkMode)} accentColor={accentColor} onSetAccentColor={setAccentColor} wallpaper={wallpaper} onSetWallpaper={setWallpaper} onExportData={() => {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ tasks, timeEntries, journalEntries, notes, events, goals }));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "focusflow_backup.json");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+      }} onWipeData={() => setIsWipeModalOpen(true)} />;
+      case AppModule.CALCULATOR: return <Calculator />;
+      case AppModule.NOTES: return <Notes notes={notes} onAddNote={addNote} onUpdateNote={updateNote} onDeleteNote={deleteNote} />;
+      case AppModule.WEATHER: return <Weather />;
+      case AppModule.CLOCK: return <Clock />;
+      case AppModule.CALENDAR: return <Calendar events={events} onAddEvent={addEvent} onDeleteEvent={deleteEvent} />;
+      case AppModule.GOALS: return <Goals goals={goals} onAddGoal={addGoal} onToggleGoal={toggleGoal} onDeleteGoal={deleteGoal} />;
+      case AppModule.MUSIC: return <Music />;
+      default: return <div className="p-4">App not found</div>;
     }
   };
-  
-  const selectedWallpaper = wallpapers.find(w => w.id === wallpaper) || wallpapers[0];
-  const wallpaperUrl = isDarkMode ? selectedWallpaper.darkUrl : selectedWallpaper.lightUrl;
 
   return (
-    <div className={`h-full w-full overflow-hidden font-sans ${isDarkMode ? 'dark' : ''}`}>
-      <div 
-        className="absolute inset-0 z-0 bg-cover bg-center transition-all duration-500 ease-in-out"
-        style={{ backgroundImage: `url(${wallpaperUrl})` }}
-      />
-      
-      <MenuBar 
-        isDarkMode={isDarkMode} 
+    <div className="relative w-screen h-screen overflow-hidden bg-cover bg-center transition-all duration-500" style={{ backgroundImage: `url(${getWallpaperUrl()})` }}>
+      {/* Menu Bar */}
+      <MenuBar
+        isDarkMode={isDarkMode}
         onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
-        onNewTask={() => openWindow(AppModule.TASKS)}
-        onOpenPreferences={() => openWindow(AppModule.SETTINGS)}
-        onCloseWindow={closeActiveWindow}
-        onMinimizeWindow={minimizeActiveWindow}
-        onToggleMaximize={toggleMaximizeActiveWindow}
-        onCloseAll={closeAllWindows}
+        onNewTask={() => { handleLaunch(AppModule.TASKS); }}
+        onOpenPreferences={() => handleLaunch(AppModule.SETTINGS)}
+        onCloseWindow={() => activeWindowId && handleClose(activeWindowId)}
+        onMinimizeWindow={() => activeWindowId && handleMinimize(activeWindowId)}
+        onToggleMaximize={() => activeWindowId && handleToggleMaximize(activeWindowId)}
+        onCloseAll={handleCloseAll}
         windows={windows}
         activeWindowId={activeWindowId}
-        onFocusWindow={focusWindow}
+        onFocusWindow={handleFocus}
       />
-      
-      <main className="absolute inset-0 top-[var(--menubar-height)] bottom-[calc(var(--dock-height)+8px)]">
-        {windows.map(config => (
-          <Window 
-            key={config.id} 
-            config={config} 
-            onClose={() => closeWindow(config.id)} 
-            onMinimize={() => minimizeWindow(config.id)}
-            onToggleMaximize={() => toggleMaximizeWindow(config.id)}
-            onFocus={() => focusWindow(config.id)}
-            onUpdate={(updates) => updateWindow(config.id, updates)}
+
+      {/* Windows Area */}
+      <div className="absolute top-[var(--menubar-height)] bottom-[calc(var(--dock-height)+20px)] left-0 right-0 overflow-hidden pointer-events-none">
+        {windows.map(window => (
+          <Window
+            key={window.id}
+            config={window}
+            onClose={() => handleClose(window.id)}
+            onMinimize={() => handleMinimize(window.id)}
+            onToggleMaximize={() => handleToggleMaximize(window.id)}
+            onFocus={() => handleFocus(window.id)}
+            onUpdate={(updates) => handleUpdateWindow(window.id, updates)}
           >
-            {renderAppContent(config.id)}
+            {renderApp(window.id)}
           </Window>
         ))}
-      </main>
+      </div>
 
-      <Dock openWindows={windows} onLaunch={openWindow} onFocus={focusWindow}/>
+      {/* Dock */}
+      <Dock openWindows={windows} onLaunch={handleLaunch} onFocus={handleFocus} />
 
-      <ConfirmationModal 
+      {/* Modals */}
+      <ConfirmationModal
         isOpen={isWipeModalOpen}
         onClose={() => setIsWipeModalOpen(false)}
-        onConfirm={() => {
-          setIsWipeModalOpen(false);
-          handleWipeData();
-        }}
-        title="Reset All Data"
-        message="Are you sure you want to delete all your data? This action is irreversible and will reset the application to its default state."
-        confirmText="Yes, Reset Everything"
+        onConfirm={() => { handleWipeData(); setIsWipeModalOpen(false); }}
+        title="Wipe All Data?"
+        message="This action cannot be undone. All your tasks, settings, and journal entries will be permanently deleted."
+        confirmText="Wipe Everything"
       />
     </div>
   );

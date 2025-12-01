@@ -46,3 +46,19 @@ export const sendMessageStream = async (
     throw error;
   }
 };
+
+/**
+ * Generates a short, daily reflective prompt.
+ */
+export const getDailyPrompt = async (): Promise<string> => {
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: "Generate a short, one-sentence reflective prompt for a student or professional to start their day. It should be inspiring and thought-provoking. For example: 'What is one thing you are grateful for today?' or 'What is a small step you can take towards a big goal?'",
+    });
+    return response.text?.trim() || "What will you accomplish today?";
+  } catch (error) {
+    console.error("Error fetching daily prompt:", error);
+    return "What is your main focus for today?"; // Return a fallback prompt
+  }
+};
